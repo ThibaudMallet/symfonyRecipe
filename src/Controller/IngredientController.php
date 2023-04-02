@@ -15,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 class IngredientController extends AbstractController
 {
     /**
-     * List ingredients
+     * Render the list of ingredients
      *
      * @param IngredientRepository $ingredientRepository
      * @param PaginatorInterface $paginator
@@ -36,6 +36,13 @@ class IngredientController extends AbstractController
         ]);
     }
 
+    /**
+     * Render the form to add a new ingredient and post it
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $manager
+     * @return Response
+     */
     #[Route('ingredient/new', name: 'app_ingredient_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $manager): Response
     {
@@ -60,6 +67,32 @@ class IngredientController extends AbstractController
         }
 
         return $this->render('pages/ingredient/new.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('ingredient/edit/{id}', 'app_ingredient_edit', methods: ['GET', 'POST'])]
+    public function edit(Ingredient $ingredient, Request $request, EntityManagerInterface $manager): Response
+    {
+        $form = $this->createForm(IngredientType::class, $ingredient);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $ingredient = $form->getData();
+
+            $manager->persist($ingredient);
+            $manager->flush();
+
+            $this->addFlash(
+                'success',
+                'Votre ingrédient a bien été modifié !'
+            );
+
+            return $this->redirectToRoute('app_ingredient');
+        }
+
+        return $this->render('pages/ingredient/edit.html.twig', [
             'form' => $form->createView(),
         ]);
     }
