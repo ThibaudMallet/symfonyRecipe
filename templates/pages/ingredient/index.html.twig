@@ -4,6 +4,12 @@
 
 {% block body %}
     <div class="container mt-4">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-dismissible alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
         {% if not ingredients.items is same as([]) %}
         <h1>Mes ingrédients</h1>
         <div class="count mt-4">
