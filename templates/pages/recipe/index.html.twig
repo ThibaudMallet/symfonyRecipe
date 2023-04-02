@@ -12,7 +12,7 @@
         </div>
 
         {% for message in app.flashes('success') %}
-            <div class="alert alert-dismissible alert-success">
+            <div class="alert alert-dismissible alert-success mt-4">
                 {{ message }}
             </div>
         {% endfor %}
@@ -40,8 +40,8 @@
                         <td>{{ (recipe.price is same as(null)) ? 'Non renseigné' : recipe.price }}</td>
                         <td>{{ (recipe.difficulty is same as(null)) ? 'Non renseigné' : recipe.difficulty }}</td>
                         <td>{{ recipe.createdAt | date('d/m/Y') }}</td>
-                        {# <td><a href="{{ path('app_recipe_edit', {id : recipe.id }) }}" class="btn btn-info">Modifier</a></td>
-                        <td><a href="{{ path('app_recipe_delete', {id : recipe.id }) }}" class="btn btn-danger">Supprimer</a></td> #}
+                        <td><a href="{{ path('app_recipe_edit', {id : recipe.id }) }}" class="btn btn-info">Modifier</a></td>
+                        <td><a href="{{ path('app_recipe_delete', {id : recipe.id }) }}" class="btn btn-danger">Supprimer</a></td>
                     </tr>
                 {% endfor %}
             </tbody>
