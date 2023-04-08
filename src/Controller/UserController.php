@@ -65,9 +65,26 @@ class UserController extends AbstractController
         ]);
     }
 
+    /**
+     * this method allow us to edit user password
+     *
+     * @param User $user
+     * @param Request $request
+     * @param UserPasswordHasherInterface $hasher
+     * @param EntityManagerInterface $manager
+     * @return Response
+     */
     #[Route('user/edit-password/{id}', name: 'app_user_edit_password', methods: ['GET', 'POST'])]
     public function editPassword(User $user, Request $request, UserPasswordHasherInterface $hasher, EntityManagerInterface $manager): Response
     {
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_security_login');
+        }
+
+        if ($this->getUser() !== $user) {
+            return $this->redirectToRoute('app_recipe');
+        }
+
         $form = $this->createForm(UserPasswordType::class);
 
         $form->handleRequest($request);
@@ -75,12 +92,8 @@ class UserController extends AbstractController
         if($form->isSubmitted() && $form->isValid()) {
             if($hasher->isPasswordValid($user, $form->getData()['plainPassword'])) {  
 
-                $user->setPassword(
-                    $hasher->hashPassword(
-                        $user,
-                        $form->getData()['newPassword']
-                    )
-                );
+                $user->setUpdatedAt(new \DateTimeImmutable());
+                $user->setPlainPassword($form->getData()['newPassword']);
     
                 $manager->persist($user);
                 $manager->flush();
