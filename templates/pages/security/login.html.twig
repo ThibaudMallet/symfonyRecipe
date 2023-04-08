@@ -12,6 +12,12 @@
             {{ error.messageKey|trans(error.messageData, 'security') }}
         </div>
         {% endif %}
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-dismissible alert-success mt-4">
+                {{ message }}
+            </div>
+        {% endfor %}
         
 
         <form action="{{ path('app_security_login') }}" method="post">
