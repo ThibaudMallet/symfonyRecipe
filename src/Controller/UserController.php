@@ -4,11 +4,14 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\UserType;
+use Faker\Guesser\Name;
+use App\Form\UserPasswordType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserController extends AbstractController
 {
@@ -21,7 +24,7 @@ class UserController extends AbstractController
      * @param EntityManagerInterface $manager
      * @return Response
      */
-    public function index(User $user, Request $request, EntityManagerInterface $manager): Response
+    public function index(User $user, Request $request, EntityManagerInterface $manager, UserPasswordHasherInterface $hasher): Response
     {
         if (!$this->getUser()) {
             return $this->redirectToRoute('app_security_login');
@@ -36,21 +39,67 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user = $form->getData();
+            if($hasher->isPasswordValid($user, $form->getData()->getPlainPassword())) {       
+                $user = $form->getData();
+    
+                $manager->persist($user);
+                $manager->flush();
+    
+                $this->addFlash(
+                    'success',
+                    'Les informations de votre compte ont bien été modifiées.'
+                );
 
-            $manager->persist($user);
-            $manager->flush();
+                return $this->redirectToRoute('app_recipe');
+            } else {
+                $this->addFlash(
+                    'warning',
+                    'Le mot de passe renseigné est incorrect.'
+                );
+            }
 
-            $this->addFlash(
-                'success',
-                'Les informations de votre compte ont bien été modifiées'
-            );
-
-            return $this->redirectToRoute('app_recipe');
         }
 
         return $this->render('pages/user/edit.html.twig', [
             'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('user/edit-password/{id}', name: 'app_user_edit_password', methods: ['GET', 'POST'])]
+    public function editPassword(User $user, Request $request, UserPasswordHasherInterface $hasher, EntityManagerInterface $manager): Response
+    {
+        $form = $this->createForm(UserPasswordType::class);
+
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            if($hasher->isPasswordValid($user, $form->getData()['plainPassword'])) {  
+
+                $user->setPassword(
+                    $hasher->hashPassword(
+                        $user,
+                        $form->getData()['newPassword']
+                    )
+                );
+    
+                $manager->persist($user);
+                $manager->flush();
+    
+                $this->addFlash(
+                    'success',
+                    'Le mot de passe a été modifié.'
+                );
+
+                return $this->redirectToRoute('app_recipe');
+            } else {
+                $this->addFlash(
+                    'warning',
+                    'Le mot de passe renseigné est incorrect.'
+                );
+            }
+        }
+        return $this->render('pages/user/edit_password.html.twig', [
+            'form' => $form->createView()
         ]);
     }
 }
