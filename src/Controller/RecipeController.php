@@ -6,6 +6,7 @@ use App\Entity\Recipe;
 use App\Form\RecipeType;
 use App\Repository\RecipeRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,6 +36,40 @@ class RecipeController extends AbstractController
         );
         
         return $this->render('pages/recipe/index.html.twig', [
+            'recipes' => $recipes
+        ]);
+    }
+
+    #[Route('/recipe/{id}', name: 'app_recipe_show', methods: ['GET'])]
+    #[Security("is_granted('ROLE_USER') and recipe.isIsPublic() === true")]
+    /**
+     * this method allow us to show a recipe
+     *
+     * @param Recipe $recipe
+     * @return Response
+     */
+    public function show(Recipe $recipe): Response
+    {
+        return $this->render('pages/recipe/show.html.twig', [
+            'recipe' => $recipe
+        ]);
+    }
+
+    /**
+     * this method allow us to show all public recipes
+     *
+     * @return Response
+     */
+    #[Route('/recipe/community/public', name: 'app_recipe_public', methods: ['GET'])]
+    public function indexPublic(PaginatorInterface $paginator, RecipeRepository $recipeRepository, Request $request): Response
+    {
+        $recipes = $paginator->paginate(
+            $recipeRepository->findPublicRecipes(null),
+            $request->query->getInt('page', 1),
+            10
+        );
+
+        return $this->render('pages/recipe/index_public.html.twig', [
             'recipes' => $recipes
         ]);
     }
@@ -85,7 +120,7 @@ class RecipeController extends AbstractController
      * @param Recipe $recipe
      * @return Response
      */
-    #[Security("is_granted('ROLE_USER') and user === reciê.getUser()")]
+    #[Security("is_granted('ROLE_USER') and user === recipe.getUser()")]
     #[Route('recipe/edit/{id}', name: 'app_recipe_edit', methods: ['GET', 'POST'])]
     public function edit(Recipe $recipe, Request $request, EntityManagerInterface $manager): Response
     {
@@ -119,7 +154,7 @@ class RecipeController extends AbstractController
      * @param Recipe $recipe
      * @return Response
      */
-    #[Security("is_granted('ROLE_USER') and user === reciê.getUser()")]
+    #[Security("is_granted('ROLE_USER') and user === recipe.getUser()")]
     #[Route('recipe/delete/{id}', name:'app_recipe_delete', methods: ['GET'])]
     public function delete(Recipe $recipe, EntityManagerInterface $manager): Response
     {

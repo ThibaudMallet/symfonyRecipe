@@ -123,6 +123,7 @@ class RecipeType extends AbstractType
                 'attr' => [
                     'class' => 'form-check-input',
                 ],
+                'required' => false,
                 'label' => 'Favoris ?',
                 'label_attr' =>  [
                     'class' => 'form-check-label',

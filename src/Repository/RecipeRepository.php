@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Recipe;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use PhpParser\Node\Expr\Cast\Array_;
 
 /**
  * @extends ServiceEntityRepository<Recipe>
@@ -38,4 +39,23 @@ class RecipeRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * this method allow us to get number of public recipes
+     *
+     * @param integer $nbRecipes
+     * @return array
+     */
+    public function findPublicRecipes(?int $nbRecipes): array
+    {
+        $queryBuilder =  $this->createQueryBuilder('r')
+            ->where('r.isPublic = 1')
+            ->orderBy('r.createdAt', 'DESC');
+            
+            if ($nbRecipes !== 0 || $nbRecipes !== null) {
+                $queryBuilder->setMaxResults($nbRecipes);
+            }
+            return $queryBuilder->getQuery()
+                ->getResult();
+        }
 }
