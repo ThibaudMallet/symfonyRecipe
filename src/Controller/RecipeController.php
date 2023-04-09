@@ -43,8 +43,46 @@ class RecipeController extends AbstractController
         ]);
     }
 
+    /**
+     * Render the form to add a new recipe and post it
+     *
+     * @param Request $request
+     * @param EntityManagerInterface $manager
+     * @return Response
+     */
+    #[IsGranted('ROLE_USER')]
+    #[Route('/recipe/new', name: 'app_recipe_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $manager): Response
+    {
+        $recipe = new Recipe();
+
+        $form = $this->createForm(RecipeType::class, $recipe);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $recipe = $form->getData();
+            $recipe->setUser($this->getUser());
+
+            $manager->persist($recipe);
+            $manager->flush();
+
+            $this->addFlash(
+                'success',
+                'Votre recette a bien été ajouté !'
+            );
+
+            return $this->redirectToRoute('app_recipe');
+        }
+
+
+        return $this->render('pages/recipe/new.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
     #[Route('/recipe/{id}', name: 'app_recipe_show', methods: ['GET', 'POST'])]
-    #[Security("is_granted('ROLE_USER') and recipe.isIsPublic() === true")]
+    #[Security("is_granted('ROLE_USER') and (recipe.isIsPublic() === true || recipe.getUser())")]
     /**
      * this method allow us to show a recipe
      *
@@ -105,44 +143,6 @@ class RecipeController extends AbstractController
 
         return $this->render('pages/recipe/index_public.html.twig', [
             'recipes' => $recipes
-        ]);
-    }
-
-    /**
-     * Render the form to add a new recipe and post it
-     *
-     * @param Request $request
-     * @param EntityManagerInterface $manager
-     * @return Response
-     */
-    #[IsGranted('ROLE_USER')]
-    #[Route('/recipe/new', name: 'app_recipe_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $manager): Response
-    {
-        $recipe = new Recipe();
-
-        $form = $this->createForm(RecipeType::class, $recipe);
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $recipe = $form->getData();
-            $recipe->setUser($this->getUser());
-
-            $manager->persist($recipe);
-            $manager->flush();
-
-            $this->addFlash(
-                'success',
-                'Votre recette a bien été ajouté !'
-            );
-
-            return $this->redirectToRoute('app_recipe');
-        }
-
-
-        return $this->render('pages/recipe/new.html.twig', [
-            'form' => $form->createView(),
         ]);
     }
 
