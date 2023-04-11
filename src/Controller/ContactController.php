@@ -38,7 +38,7 @@ class ContactController extends AbstractController
                 $contact->getEmail(),
                 $contact->getSubject(),
                 'emails/contact.html.twig',
-                ['contact' => $contact]
+                ['contact' => $contact],
             );
 
             $this->addFlash(
