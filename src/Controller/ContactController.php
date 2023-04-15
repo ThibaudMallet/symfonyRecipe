@@ -46,7 +46,7 @@ class ContactController extends AbstractController
                 'Votre demande a bien été envoyé !'
             );
 
-            return $this->redirectToRoute('app_recipe');
+            return $this->redirectToRoute('app_contact');
         }
 
         return $this->render('pages/contact/index.html.twig', [
