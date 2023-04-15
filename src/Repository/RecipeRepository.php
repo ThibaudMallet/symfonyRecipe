@@ -57,5 +57,5 @@ class RecipeRepository extends ServiceEntityRepository
             }
             return $queryBuilder->getQuery()
                 ->getResult();
-        }
+    }
 }
